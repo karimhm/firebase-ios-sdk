@@ -65,7 +65,7 @@ NSString *const kAppDistroLibraryName = @"fire-fad";
   self.authState = [FIRAppDistributionAuthPersistence retrieveAuthState:&authRetrievalError];
   // TODO (schnecle): replace NSLog statement with FIRLogger log statement
   if (authRetrievalError) {
-    NSLog(@"Error retrieving token from keychain: %@", [authRetrievalError localizedDescription]);
+    NSLog(@"Found no tester token in keychain on intitialization");
   }
 
   self.isTesterSignedIn = self.authState ? YES : NO;
@@ -147,6 +147,20 @@ NSString *const kAppDistroLibraryName = @"fire-fad";
   self.isTesterSignedIn = false;
 }
 
+@synthesize apiClientID = _apiClientID;
+
+- (NSString *)apiClientID {
+  if(!_apiClientID){
+    return kTesterAPIClientID;
+  }
+
+  return _apiClientID;
+}
+
+- (void)setApiClientID:(NSString *)clientID {
+  _apiClientID = clientID;
+}
+
 - (void)fetchReleases:(FIRAppDistributionUpdateCheckCompletion)completion {
   [self.authState performActionWithFreshTokens:^(NSString *_Nonnull accessToken,
                                                  NSString *_Nonnull idToken,
@@ -212,7 +226,7 @@ NSString *const kAppDistroLibraryName = @"fire-fad";
 
   OIDAuthorizationRequest *request = [[OIDAuthorizationRequest alloc]
       initWithConfiguration:configuration
-                   clientId:kTesterAPIClientID
+                   clientId:[self apiClientID]
                      scopes:@[ OIDScopeOpenID, OIDScopeProfile, kOIDScopeTesterAPI ]
                 redirectURL:[NSURL URLWithString:redirectURL]
                responseType:OIDResponseTypeCode
